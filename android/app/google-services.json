@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "708138069599",
+    "project_id": "order-tracking-notificat-574c6",
+    "storage_bucket": "order-tracking-notificat-574c6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:708138069599:android:2225608bc95399005df5ea",
+        "android_client_info": {
+          "package_name": "com.example.order_tracking_notification"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATsYNLTpB6ca6ftQJsoyp4f9nKTGpN6Tc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
