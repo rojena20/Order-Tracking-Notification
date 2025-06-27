@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
+import 'Admin/adminScreen_ui.dart';
 import 'User/userScreen_ui.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -90,7 +91,30 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    transitionDuration: Duration(milliseconds: 300),
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        Adminscreen(),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                          var begin = Offset(0.25.w, 0.0); // from right
+                          const end = Offset.zero;
+                          return SlideTransition(
+                            position: animation.drive(
+                              Tween(
+                                begin: begin,
+                                end: end,
+                              ).chain(CurveTween(curve: Curves.ease)),
+                            ),
+                            child: child,
+                          );
+                        },
+                  ),
+                );
+              },
               child: Center(
                 child: Container(
                   margin: EdgeInsets.symmetric(vertical: 3.h),

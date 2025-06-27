@@ -9,6 +9,7 @@ class Userscreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.white),
         toolbarHeight: 7.5.h,
         backgroundColor: Color(0xff0c76f0),
         title: Text(
