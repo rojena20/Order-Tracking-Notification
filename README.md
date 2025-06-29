@@ -82,10 +82,3 @@ Otherwise, the app will fail to send notifications with this error:
 
 ---
 
-## 📌 To Do / Future Enhancements
-
-- Support for multiple concurrent orders
-- User authentication and login
-- Backend integration for real-time updates without relying on FCM message parsing
-
----
