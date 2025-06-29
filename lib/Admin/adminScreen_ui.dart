@@ -8,7 +8,7 @@ import 'package:sizer/sizer.dart';
 class Adminscreen extends StatefulWidget {
   static const String routName = "Adminscreen";
 
-  Adminscreen({super.key});
+  const Adminscreen({super.key});
 
   @override
   State<Adminscreen> createState() => _AdminscreenState();
@@ -44,7 +44,7 @@ class _AdminscreenState extends State<Adminscreen> {
         'https://fcm.googleapis.com/v1/projects/order-tracking-notificat-574c6/messages:send',
       );
 
-      final response = await client.post(
+      await client.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
@@ -54,14 +54,24 @@ class _AdminscreenState extends State<Adminscreen> {
               "title": "ElNahdy Pharmacy - Order #1090",
               "body": progressText,
             },
+            "data": {"statusIndex": "$progressIndex"},
           },
         }),
       );
 
-      print("FCM V1 Response: ${response.statusCode} - ${response.body}");
       client.close();
     } catch (e) {
-      print("Error sending FCM: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Something went wrong in notification: $e"),
+          backgroundColor: Color(0xFFB9433E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(2.8.w),
+          ),
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.symmetric(horizontal: 2.w, vertical: 2.h),
+        ),
+      );
     }
   }
 
@@ -70,26 +80,28 @@ class _AdminscreenState extends State<Adminscreen> {
 
     await Future.delayed(const Duration(seconds: 1));
 
-    // Send FCM notification with updated progress
-    await sendFCMNotification(progressSteps[progressIndex]);
-
-    // Update UI
     setState(() {
       progressIndex++;
+    });
+
+    await sendFCMNotification(progressSteps[progressIndex - 1]);
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt('progressIndex', progressIndex);
+
+    setState(() {
       if (progressIndex == 1) {
         orderStatus = "Confirmed";
         nextButtonText = "Ship";
       } else if (progressIndex == 2) {
         orderStatus = "Shipped";
         nextButtonText = "Deliver";
-      } else if (progressIndex == 3) {
+      } else if (progressIndex >= 3) {
         orderStatus = "Delivered";
         nextButtonText = "";
       }
       isLoading = false;
     });
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt('progressIndex', progressIndex);
   }
 
   @override
@@ -194,37 +206,54 @@ class _AdminscreenState extends State<Adminscreen> {
                               : const Color(0xffc6b405),
                         ),
                       ),
-                      nextButtonText.isNotEmpty
-                          ? ElevatedButton(
-                              onPressed: updateOrderStatus,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xff0c76f0),
-                                padding: EdgeInsets.symmetric(
-                                  vertical: 0.2.h,
-                                  horizontal: 5.w,
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (orderStatus == "Delivered") {
+                            // Reset
+                            SharedPreferences prefs =
+                                await SharedPreferences.getInstance();
+                            await prefs.remove('progressIndex');
+                            setState(() {
+                              progressIndex = 0;
+                              orderStatus = "Pending";
+                              nextButtonText = "Confirm";
+                            });
+                          } else {
+                            // Update order status as usual
+                            updateOrderStatus();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: orderStatus == "Delivered"
+                              ? Color(0xfffa563a)
+                              : const Color(0xff0c76f0),
+                          padding: EdgeInsets.symmetric(
+                            vertical: 0.2.h,
+                            horizontal: 5.w,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(3.5.w),
+                          ),
+                        ),
+                        child: isLoading
+                            ? SizedBox(
+                                height: 3.h,
+                                width: 6.w,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3.5.sp,
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(3.5.w),
+                              )
+                            : Text(
+                                orderStatus == "Delivered"
+                                    ? "Reset Order"
+                                    : nextButtonText,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14.5.sp,
                                 ),
                               ),
-                              child: isLoading
-                                  ? SizedBox(
-                                      height: 3.h,
-                                      width: 6.w,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 3.5.sp,
-                                      ),
-                                    )
-                                  : Text(
-                                      nextButtonText,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14.5.sp,
-                                      ),
-                                    ),
-                            )
-                          : const SizedBox(),
+                      ),
                     ],
                   ),
                 ),

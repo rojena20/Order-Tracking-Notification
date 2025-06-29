@@ -17,7 +17,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await setupFlutterNotifications();
   showFlutterNotification(message);
-  print('Handling a background message ${message.messageId}');
 }
 
 late AndroidNotificationChannel channel;
@@ -78,10 +77,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   if (Platform.isIOS) {
-    String? appleToken = await FirebaseMessaging.instance.getAPNSToken();
+    //String? appleToken = await FirebaseMessaging.instance.getAPNSToken(); just in case of the future want to use it
   } else {
-    String? token = await FirebaseMessaging.instance.getToken();
-    print("tokei is:$token");
+    //String? token = await FirebaseMessaging.instance.getToken(); i was tried to test the message on firebase
   }
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 

@@ -8,7 +8,7 @@ import '../Modules/end_child_module.dart';
 class Userscreen extends StatefulWidget {
   static const String routName = "Userscreen";
 
-  Userscreen({super.key});
+  const Userscreen({super.key});
 
   @override
   State<Userscreen> createState() => _UserscreenState();
@@ -44,23 +44,16 @@ class _UserscreenState extends State<Userscreen> {
   ];
 
   void handleNotification(RemoteMessage message) async {
-    final body = message.notification?.body;
+    final data = message.data;
 
-    if (body != null) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-
-      if (body.contains("✔ Pending") && body.contains("⭕ Confirmed")) {
-        setState(() => statusIndex = 0);
-        prefs.setInt('statusIndex', 0);
-      } else if (body.contains("✔ Confirmed") && body.contains("⭕ Shipped")) {
-        setState(() => statusIndex = 1);
-        prefs.setInt('statusIndex', 1);
-      } else if (body.contains("✔ Shipped") && body.contains("⭕ Delivered")) {
-        setState(() => statusIndex = 2);
-        prefs.setInt('statusIndex', 2);
-      } else if (body.contains("✔ Delivered")) {
-        setState(() => statusIndex = 3);
-        prefs.setInt('statusIndex', 3);
+    if (data.containsKey('statusIndex')) {
+      final index = int.tryParse(data['statusIndex']);
+      if (index != null) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setInt('statusIndex', index);
+        setState(() {
+          statusIndex = index;
+        });
       }
     }
   }
@@ -238,6 +231,35 @@ class _UserscreenState extends State<Userscreen> {
             ),
           );
         }),
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 2.h),
+          child: Center(
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('hasOrdered');
+                await prefs.remove('statusIndex');
+                setState(() {
+                  hasOrdered = false;
+                  statusIndex = 0;
+                  isStatusLoaded = true;
+                });
+              },
+              icon: Icon(Icons.refresh, color: Colors.white),
+              label: Text(
+                "Reset Order",
+                style: TextStyle(color: Colors.white, fontSize: 14.sp),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xfffa563a),
+                padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 1.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(2.w),
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
