@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 
 class EndChildModule extends StatelessWidget {
-  String asset;
-  double assetHeight;
-  String title;
-  String message;
+  final String asset;
+  final double assetHeight;
+  final String title;
+  final String message;
 
   EndChildModule({
     super.key,

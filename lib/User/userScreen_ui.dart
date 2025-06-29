@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 import '../Modules/end_child_module.dart';
@@ -17,6 +18,7 @@ class _UserscreenState extends State<Userscreen> {
   bool isLoading = false;
   bool hasOrdered = false;
   int statusIndex = 0;
+  bool isStatusLoaded = false;
 
   final List<Map<String, dynamic>> orderSteps = [
     {
@@ -41,18 +43,24 @@ class _UserscreenState extends State<Userscreen> {
     },
   ];
 
-  void handleNotification(RemoteMessage message) {
+  void handleNotification(RemoteMessage message) async {
     final body = message.notification?.body;
 
     if (body != null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
       if (body.contains("✔ Pending") && body.contains("⭕ Confirmed")) {
         setState(() => statusIndex = 0);
+        prefs.setInt('statusIndex', 0);
       } else if (body.contains("✔ Confirmed") && body.contains("⭕ Shipped")) {
         setState(() => statusIndex = 1);
+        prefs.setInt('statusIndex', 1);
       } else if (body.contains("✔ Shipped") && body.contains("⭕ Delivered")) {
         setState(() => statusIndex = 2);
+        prefs.setInt('statusIndex', 2);
       } else if (body.contains("✔ Delivered")) {
         setState(() => statusIndex = 3);
+        prefs.setInt('statusIndex', 3);
       }
     }
   }
@@ -60,9 +68,21 @@ class _UserscreenState extends State<Userscreen> {
   @override
   void initState() {
     super.initState();
-
+    loadStatus();
     FirebaseMessaging.onMessage.listen(handleNotification);
     FirebaseMessaging.onMessageOpenedApp.listen(handleNotification);
+  }
+
+  Future<void> loadStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final ordered = prefs.getBool('hasOrdered') ?? false;
+    final status = prefs.getInt('statusIndex') ?? 0;
+
+    setState(() {
+      hasOrdered = ordered;
+      statusIndex = status;
+      isStatusLoaded = true;
+    });
   }
 
   @override
@@ -81,7 +101,9 @@ class _UserscreenState extends State<Userscreen> {
           ),
         ),
       ),
-      body: hasOrdered ? buildTrackingView() : buildOrderView(),
+      body: isStatusLoaded
+          ? (hasOrdered ? buildTrackingView() : buildOrderView())
+          : Center(child: Text('Loading...')),
     );
   }
 
@@ -125,6 +147,12 @@ class _UserscreenState extends State<Userscreen> {
                     await FirebaseMessaging.instance.subscribeToTopic(
                       "order_1090",
                     );
+
+                    SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    prefs.setBool('hasOrdered', true);
+                    prefs.setInt('statusIndex', 0);
+
                     setState(() {
                       hasOrdered = true;
                       isLoading = false;
